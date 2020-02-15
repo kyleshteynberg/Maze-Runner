@@ -22,6 +22,10 @@ public class project1 {
 	        this.y = y;
 	        wall=false;
 	    }
+	    
+	    public String toString() {
+	    	return "(" + x + "," + y + ")";
+	    }
 	}
 	
 	static class compareEuclidian implements Comparator<Cell> 
@@ -96,8 +100,8 @@ public class project1 {
 		int loopIter=0;
 		
 		Stack<Cell> fringe = new Stack<Cell>();
-		maze[0][0].path = "(0,0)";
 		fringe.add(maze[0][0]);
+		maze[0][0].path=maze[0][0].toString();
 		Cell state=null;
 		while (fringe.size()>0) {
 			state=fringe.pop();
@@ -107,22 +111,22 @@ public class project1 {
 				loopIter++;
 				if(state.x != maze.length-1)
 					if(maze[state.x+1][state.y].wall == false) {
-						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", (" + maze[state.x+1][state.y].x + ", " + maze[state.x+1][state.y].y + ")";
+						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x+1][state.y].toString();
 						fringe.add(maze[state.x+1][state.y]);
 						}
 				if(state.x != 0)
 					if(maze[state.x-1][state.y].wall == false) {
-						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", (" + maze[state.x-1][state.y].x + ", " + maze[state.x-1][state.y].y + ")";
+						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x-1][state.y].toString();
 						fringe.add(maze[state.x-1][state.y]);
 						}
 				if(state.y != maze.length-1)
 					if(maze[state.x][state.y+1].wall == false) {
-						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", (" + maze[state.x][state.y+1].x + ", " + maze[state.x][state.y+1].y + ")";
+						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y+1].toString();
 						fringe.add(maze[state.x][state.y+1]);
 						}
 				if(state.y != 0)
 					if(maze[state.x][state.y-1].wall == false) {
-						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", (" + maze[state.x][state.y-1].x + ", " + maze[state.x][state.y-1].y + ")";
+						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y-1].toString();
 						fringe.add(maze[state.x][state.y-1]);
 						}
 				
@@ -151,6 +155,7 @@ public class project1 {
 		
 		Queue<Cell> fringe = new LinkedList<Cell>();
 		fringe.add(maze[0][0]);
+		maze[0][0].path=maze[0][0].toString();
 		Cell state=null;
 		while (fringe.size()>0) {
 			state=fringe.poll();
@@ -160,22 +165,22 @@ public class project1 {
 				loopIter++;
 				if(state.x != maze.length-1)
 					if(maze[state.x+1][state.y].wall == false) {
-						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", (" + maze[state.x+1][state.y].x + ", " + maze[state.x+1][state.y].y + ")";
+						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x+1][state.y].toString();
 						fringe.add(maze[state.x+1][state.y]);
 					}
 				if(state.x != 0)
 					if(maze[state.x-1][state.y].wall == false) {
-						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", (" + maze[state.x-1][state.y].x + ", " + maze[state.x-1][state.y].y + ")";
+						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x-1][state.y].toString();
 						fringe.add(maze[state.x-1][state.y]);
 					}
 				if(state.y != maze.length-1)
 					if(maze[state.x][state.y+1].wall == false) {
-						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", (" + maze[state.x][state.y+1].x + ", " + maze[state.x][state.y+1].y + ")";
+						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y+1].toString();
 						fringe.add(maze[state.x][state.y+1]);
 					}
 				if(state.y != 0)
 					if(maze[state.x][state.y-1].wall == false) {
-						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", (" + maze[state.x][state.y-1].x + ", " + maze[state.x][state.y-1].y + ")";
+						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y-1].toString();
 						fringe.add(maze[state.x][state.y-1]);
 					}
 				
@@ -204,6 +209,7 @@ public class project1 {
 		
 		PriorityQueue<Cell> fringe = new PriorityQueue<Cell>(new compareEuclidian());
 		fringe.add(maze[0][0]);
+		maze[0][0].path=maze[0][0].toString();
 		Cell state=null;
 		while (fringe.size()>0) {
 			state=fringe.poll();
@@ -214,25 +220,25 @@ public class project1 {
 				if(state.x != maze.length-1)
 					if(maze[state.x+1][state.y].wall == false) {
 						maze[state.x+1][state.y].h_euclidean=heuristicEuclidian(maze[state.x+1][state.y].x,maze[state.x+1][state.y].y,maze.length-1,maze.length-1);
-						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", (" + maze[state.x+1][state.y].x + ", " + maze[state.x+1][state.y].y + ")";
+						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x+1][state.y].toString();
 						fringe.add(maze[state.x+1][state.y]);
 						}
 				if(state.x != 0)
 					if(maze[state.x-1][state.y].wall == false) {
 						maze[state.x-1][state.y].h_euclidean=heuristicEuclidian(maze[state.x-1][state.y].x,maze[state.x-1][state.y].y,maze.length-1,maze.length-1);
-						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", (" + maze[state.x-1][state.y].x + ", " + maze[state.x-1][state.y].y + ")";
+						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x-1][state.y].toString();
 						fringe.add(maze[state.x-1][state.y]);
 						}
 				if(state.y != maze.length-1)
 					if(maze[state.x][state.y+1].wall == false) {
 						maze[state.x][state.y+1].h_euclidean=heuristicEuclidian(maze[state.x][state.y+1].x,maze[state.x][state.y+1].y,maze.length-1,maze.length-1);
-						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", (" + maze[state.x][state.y+1].x + ", " + maze[state.x][state.y+1].y + ")";
+						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y+1].toString();
 						fringe.add(maze[state.x][state.y+1]);
 						}
 				if(state.y != 0)
 					if(maze[state.x][state.y-1].wall == false) {
 						maze[state.x][state.y-1].h_euclidean=heuristicEuclidian(maze[state.x][state.y-1].x,maze[state.x][state.y-1].y,maze.length-1,maze.length-1);
-						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", (" + maze[state.x][state.y-1].x + ", " + maze[state.x][state.y-1].y + ")";
+						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y-1].toString();
 						fringe.add(maze[state.x][state.y-1]);
 						}
 				
@@ -261,6 +267,7 @@ public class project1 {
 		
 		PriorityQueue<Cell> fringe = new PriorityQueue<Cell>(new compareManhatten());
 		fringe.add(maze[0][0]);
+		maze[0][0].path=maze[0][0].toString();
 		Cell state=null;
 		while (fringe.size()>0) {
 			state=fringe.poll();
@@ -271,25 +278,25 @@ public class project1 {
 				if(state.x != maze.length-1)
 					if(maze[state.x+1][state.y].wall == false) {
 						maze[state.x+1][state.y].h_manhatten=heuristicManhatten(maze[state.x+1][state.y].x,maze[state.x+1][state.y].y,maze.length-1,maze.length-1);
-						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", (" + maze[state.x+1][state.y].x + ", " + maze[state.x+1][state.y].y + ")";
+						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x+1][state.y].toString();
 						fringe.add(maze[state.x+1][state.y]);
 						}
 				if(state.x != 0)
 					if(maze[state.x-1][state.y].wall == false) {
 						maze[state.x-1][state.y].h_manhatten=heuristicManhatten(maze[state.x-1][state.y].x,maze[state.x-1][state.y].y,maze.length-1,maze.length-1);
-						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", (" + maze[state.x-1][state.y].x + ", " + maze[state.x-1][state.y].y + ")";
+						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x-1][state.y].toString();
 						fringe.add(maze[state.x-1][state.y]);
 						}
 				if(state.y != maze.length-1)
 					if(maze[state.x][state.y+1].wall == false) {
 						maze[state.x][state.y+1].h_manhatten=heuristicManhatten(maze[state.x][state.y+1].x,maze[state.x][state.y+1].y,maze.length-1,maze.length-1);
-						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", (" + maze[state.x][state.y+1].x + ", " + maze[state.x][state.y+1].y + ")";
+						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y+1].toString();
 						fringe.add(maze[state.x][state.y+1]);
 						}
 				if(state.y != 0)
 					if(maze[state.x][state.y-1].wall == false) {
 						maze[state.x][state.y-1].h_manhatten=heuristicManhatten(maze[state.x][state.y-1].x,maze[state.x][state.y-1].y,maze.length-1,maze.length-1);
-						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", (" + maze[state.x][state.y-1].x + ", " + maze[state.x][state.y-1].y + ")";
+						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y-1].toString();
 						fringe.add(maze[state.x][state.y-1]);
 						}
 				
