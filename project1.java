@@ -16,6 +16,8 @@ public class project1 {
 	    public double h_euclidean;
 	    public int h_manhatten;
 	    public String path;
+	    //pathLength only used in BFS because BFS is ensured to get the shortest route
+	    public int pathLength;
 	    
 	    public Cell(int x, int y) {
 	        this.x = x;
@@ -126,6 +128,7 @@ public class project1 {
 	 * Determines a feasible path through a maze using DFS search algorithm
 	 * Also tracks the fringe size at it's largest point
 	 * and how many nodes are checked before finding the goal
+	 * Returns: True is maze is solvable and false if it is not
 	 */
 	public static boolean searchDFS(Cell[][] maze){
 		List<Cell> closed_set = new ArrayList<Cell>();
@@ -180,8 +183,9 @@ public class project1 {
 	 * Determines a feasible path through a maze using BFS search algorithm
 	 * Also tracks the fringe size at it's largest point
 	 * and how many nodes are checked before finding the goal
+	 * Returns: Shortest Path Length through maze. Returns 0 if maze is unsolvable.
 	 */
-	public static boolean searchBFS(Cell[][] maze){
+	public static int searchBFS(Cell[][] maze){
 		List<Cell> closed_set = new ArrayList<Cell>();
 		int maxFringe = 0;
 		int loopIter=0;
@@ -189,6 +193,7 @@ public class project1 {
 		Queue<Cell> fringe = new LinkedList<Cell>();
 		fringe.add(maze[0][0]);
 		maze[0][0].path=maze[0][0].toString();
+		maze[0][0].pathLength=0;
 		Cell state=null;
 		while (fringe.size()>0) {
 			state=fringe.poll();
@@ -199,21 +204,25 @@ public class project1 {
 				if(state.x != maze.length-1)
 					if(maze[state.x+1][state.y].wall == false) {
 						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x+1][state.y].toString();
+						maze[state.x+1][state.y].pathLength = maze[state.x][state.y].pathLength+1;
 						fringe.add(maze[state.x+1][state.y]);
 					}
 				if(state.x != 0)
 					if(maze[state.x-1][state.y].wall == false) {
 						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x-1][state.y].toString();
+						maze[state.x-1][state.y].pathLength = maze[state.x][state.y].pathLength+1;
 						fringe.add(maze[state.x-1][state.y]);
 					}
 				if(state.y != maze.length-1)
 					if(maze[state.x][state.y+1].wall == false) {
 						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y+1].toString();
+						maze[state.x][state.y+1].pathLength = maze[state.x][state.y].pathLength+1;
 						fringe.add(maze[state.x][state.y+1]);
 					}
 				if(state.y != 0)
 					if(maze[state.x][state.y-1].wall == false) {
 						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y-1].toString();
+						maze[state.x][state.y-1].pathLength = maze[state.x][state.y].pathLength+1;
 						fringe.add(maze[state.x][state.y-1]);
 					}
 				
@@ -225,17 +234,18 @@ public class project1 {
 		System.out.println("BFS Nodes Checked: " + loopIter);
 		if(state.x==maze.length-1 && state.y==maze.length-1) {
 			System.out.println("BFS Path: " + state.path);
-			return true;
+			return maze[state.x][state.y].pathLength;
 		}
-		return false;
+		return 0;
 	} 
 	
 	/**
 	 * Determines a feasible path through a maze using A* search algorithm and Euclidian Distance as a heuristic
 	 * Also tracks the fringe size at it's largest point
 	 * and how many nodes are checked before finding the goal
+	 * Returns: Number of Nodes searched expanded upon
 	 */
-	public static boolean searchAstarEuclidian(Cell[][] maze){
+	public static int searchAstarEuclidian(Cell[][] maze){
 		List<Cell> closed_set = new ArrayList<Cell>();
 		int maxFringe = 0;
 		int loopIter=0;
@@ -283,17 +293,18 @@ public class project1 {
 		System.out.println("Euclidian A* Search Nodes Checked: " + loopIter);
 		if(state.x==maze.length-1 && state.y==maze.length-1) {
 			System.out.println("Euclidian A* Search Path:" + state.path);
-			return true;
+			return loopIter;
 			}
-		return false;
+		return loopIter;
 	} 
 	
 	/**
 	 * Determines a feasible path through a maze using A* search algorithm and Manhatten Distance as a heuristic
 	 * Also tracks the fringe size at it's largest point
 	 * and how many nodes are checked before finding the goal
+	 * Returns: Number of Nodes searched expanded upon
 	 */
-	public static boolean searchAstarManhatten(Cell[][] maze){
+	public static int searchAstarManhatten(Cell[][] maze){
 		List<Cell> closed_set = new ArrayList<Cell>();
 		int maxFringe = 0;
 		int loopIter=0;
@@ -341,11 +352,10 @@ public class project1 {
 		System.out.println("Manhatten A* Search Nodes Checked: " + loopIter);
 		if(state.x==maze.length-1 && state.y==maze.length-1) {
 			System.out.println("Manhatten A* Search Path:" + state.path);
-			return true;
+			return loopIter;
 			}
-		return false;
+		return loopIter;
 	} 
-	
 	
 	public static boolean biDirectionalBFS(Cell[][] maze) {
 		Cell[][] maze_a = new Cell[maze.length][maze.length];
@@ -486,27 +496,91 @@ public class project1 {
 		return false;
 	}
 	
-	
-	
 	public static void main(String []args) {
 		int size = 5;
-		Cell[][] maze = generateMaze(size, .3);
+		double prob = 0.3;
+		//For testing
+		Cell[][] maze = generateMaze(size, prob);
 		
 		for(int i = 0; i<size; i++){
 		    for(int j = 0; j<size; j++){
-		    	if(maze[i][j].wall==true)
+		    	if(maze[i][j].wall==true) 
 		    		System.out.print("1 ");
 		    	else
 		    		System.out.print("0 ");
 		    }
 		    System.out.println();
 		}
-		
 		//System.out.println(searchDFS(maze));
 		//System.out.println(searchBFS(maze));
 		//System.out.println(searchAstarEuclidian(maze));
 		//System.out.println(searchAstarManhatten(maze));
-		System.out.println(biDirectionalBFS(maze));
+		//System.out.println(biDirectionalBFS(maze));
 		
+		
+		
+		//For testing different sizes and p-values over large amounts of mazes
+	/*	int averageAstarManhatten = 0;
+		int testLoops = 1000000;
+		for(int i = 0; i<testLoops;i++) {
+			maze=generateMaze(size, prob);
+			if(searchAstarManhatten(maze))
+				averageAstarManhatten++;
+		}
+		//System.out.println("DFS success: " + averageDFS +  "/" + testLoops);
+		//System.out.println("DFS success: " + averageBFS +  "/" + testLoops);
+		//System.out.println("DFS success: " + averageAstarEiclidian + "/" + testLoops);
+		System.out.println("DFS success: " + averageAstarManhatten + "/" + testLoops);
+		*/
+		
+		//For testing shortest path with different p-values over large amounts of mazes
+		/*prob=0.7;
+		int sumPathLength=0;
+		double averagePathLength;
+		int testLoops = 100000;
+		int totalLoops=0;
+		
+		for(int j = 0; j<testLoops;j++) {
+			maze=generateMaze(size, prob);
+			int temp=searchBFS(maze);
+			if(temp!=0) {
+				sumPathLength+=searchBFS(maze);
+				totalLoops++;
+			}
+		}*/
+		/*prob=0;
+		while(prob<=0.5) {
+			for(int j = 0; j<testLoops;j++) {
+				maze=generateMaze(size, prob);
+				int temp=searchBFS(maze);
+				if(temp!=0) {
+					sumPathLength+=searchBFS(maze);
+					totalLoops++;
+				}
+			}
+			prob+=0.01;
+		}
+		averagePathLength = (double)sumPathLength/totalLoops;
+		System.out.println("Average Path Length: " + averagePathLength);*/
+		
+		
+		//For testing Euclidian Heuristics vs Manhattan Heuristics
+		/*	double averageAstarManhatten = 0;
+			int sumAstarManhatten=0;
+			double averageAstarEuclidian = 0;
+			int sumAstarEuclidian=0;
+			int testLoops = 1000000;
+			prob=0.7;
+			for(int i = 0; i<testLoops;i++) {
+				maze=generateMaze(size, prob);
+				sumAstarEuclidian+=searchAstarEuclidian(maze);
+				sumAstarManhatten+=searchAstarManhatten(maze);
+			}
+			averageAstarManhatten=(double)sumAstarManhatten/testLoops;
+			averageAstarEuclidian=(double)sumAstarEuclidian/testLoops;
+			System.out.println("Euclidian average Nodes expanded: " + averageAstarEuclidian);
+			System.out.println("Manhatten average Nodes expanded: " + averageAstarManhatten);
+			*/
 	}
+	
 }
