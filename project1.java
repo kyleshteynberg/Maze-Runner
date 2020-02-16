@@ -19,10 +19,15 @@ public class project1 {
 	    //pathLength only used in BFS because BFS is ensured to get the shortest route
 	    public int pathLength;
 	    
+	    //These are only used in mazes with fire
+	    public boolean fire;
+	    public Cell firstStep;
+	    
 	    public Cell(int x, int y) {
 	        this.x = x;
 	        this.y = y;
 	        wall=false;
+	        fire=false;
 	    }
 	    
 	    public String toString() {
@@ -41,6 +46,36 @@ public class project1 {
 	    	
 	    	return false; 
 	    }
+	}
+	
+	public static int adjacentFires(Cell[][] maze, Cell cell) {
+		int k=0;
+		if(cell.x!=maze.length-1)
+			if(maze[cell.x+1][cell.y].fire==true)
+				k++;
+		if(cell.x!=0)
+			if(maze[cell.x-1][cell.y].fire==true)
+				k++;
+		if(cell.y!=maze.length-1)
+			if(maze[cell.x][cell.y+1].fire==true)
+				k++;
+		if(cell.y!=0)
+			if(maze[cell.x][cell.y-1].fire==true)
+				k++;
+		return k;
+	}
+	public static void printMaze(Cell[][] maze) {
+		for(int i = 0; i<maze.length; i++){
+		    for(int j = 0; j<maze.length; j++){
+		    	if(maze[i][j].wall==true) 
+		    		System.out.print("1 ");
+		    	else if(maze[i][j].fire==true)
+		    		System.out.print("F ");
+		    	else
+		    		System.out.print("0 ");
+		    }
+		    System.out.println();
+		}
 	}
 	
 	static class compareEuclidian implements Comparator<Cell> 
@@ -62,7 +97,7 @@ public class project1 {
 	        return a.h_manhatten-b.h_manhatten;
 	    }
 
-	} 
+	}
 	
 	/**
 	* Provides heuristic based on Euclidean distance between the current state and goal state
@@ -75,6 +110,14 @@ public class project1 {
 	* Provides heuristic based on Manhatten distance between the current state and goal state
 	**/
 	public static int heuristicManhatten(int x1, int y1, int x2, int y2) {
+		return Math.abs(x1-x2) + Math.abs(y1-y2);
+	}
+	
+	/**
+	* Provides heuristic based on Manhatten distance between the current state and goal state
+	* x1 and y1 belong to the current Cell. x2 and y2 belong to the goal cell. x3 and y3 belong to the first fire cell.
+	**/
+	public static int heuristicFire(int x1, int y1, int x2, int y2, int x3, int y3) {
 		return Math.abs(x1-x2) + Math.abs(y1-y2);
 	}
 	
@@ -123,7 +166,7 @@ public class project1 {
 		grid[size-1][size-1].wall=false;
 		return grid;
 	}
-	
+
 	/**
 	 * Determines a feasible path through a maze using DFS search algorithm
 	 * Also tracks the fringe size at it's largest point
@@ -496,21 +539,131 @@ public class project1 {
 		return false;
 	}
 	
+	public static Cell firePathSearch(Cell[][] maze, Cell current, Cell fire) {
+		List<Cell> closed_set = new ArrayList<Cell>();
+		int maxFringe = 0;
+		int loopIter=0;
+		
+		PriorityQueue<Cell> fringe = new PriorityQueue<Cell>(new compareEuclidian());
+		fringe.add(current);
+		current.path=current.toString();
+		Cell state=null;
+		while (fringe.size()>0) {
+			state=fringe.poll();
+			if(state.x==maze.length-1 && state.y==maze.length-1)
+				break;
+			else if(!closed_set.contains(state)){
+				loopIter++;
+				if(state.x != maze.length-1)
+					if(maze[state.x+1][state.y].wall == false && maze[state.x+1][state.y].fire == false) {
+						maze[state.x+1][state.y].h_euclidean=heuristicFire(maze[state.x+1][state.y].x,maze[state.x+1][state.y].y,maze.length-1,maze.length-1, fire.x, fire.y);
+						maze[state.x+1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x+1][state.y].toString();
+						if(state.equals(current)) {
+							maze[state.x+1][state.y].firstStep=maze[state.x+1][state.y];
+						}else {
+							maze[state.x+1][state.y].firstStep=maze[state.x][state.y].firstStep;
+						}
+						fringe.add(maze[state.x+1][state.y]);
+						}
+				if(state.x != 0)
+					if(maze[state.x-1][state.y].wall == false && maze[state.x-1][state.y].fire == false) {
+						maze[state.x-1][state.y].h_euclidean=heuristicFire(maze[state.x-1][state.y].x,maze[state.x-1][state.y].y,maze.length-1,maze.length-1, fire.x, fire.y);
+						maze[state.x-1][state.y].path = maze[state.x][state.y].path + ", " + maze[state.x-1][state.y].toString();
+						if(state.equals(current)) {
+							maze[state.x-1][state.y].firstStep=maze[state.x-1][state.y];
+						}else {
+							maze[state.x-1][state.y].firstStep=maze[state.x][state.y].firstStep;
+						}
+						fringe.add(maze[state.x-1][state.y]);
+						}
+				if(state.y != maze.length-1)
+					if(maze[state.x][state.y+1].wall == false && maze[state.x][state.y+1].fire == false) {
+						maze[state.x][state.y+1].h_euclidean=heuristicFire(maze[state.x][state.y+1].x,maze[state.x][state.y+1].y,maze.length-1,maze.length-1, fire.x, fire.y);
+						maze[state.x][state.y+1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y+1].toString();
+						if(state.equals(current)) {
+							maze[state.x][state.y+1].firstStep=maze[state.x][state.y+1];
+						}else {
+							maze[state.x][state.y+1].firstStep=maze[state.x][state.y].firstStep;
+						}
+						fringe.add(maze[state.x][state.y+1]);
+						}
+				if(state.y != 0)
+					if(maze[state.x][state.y-1].wall == false && maze[state.x][state.y-1].fire == false) {
+						maze[state.x][state.y-1].h_euclidean=heuristicFire(maze[state.x][state.y-1].x,maze[state.x][state.y-1].y,maze.length-1,maze.length-1, fire.x, fire.y);
+						maze[state.x][state.y-1].path = maze[state.x][state.y].path + ", " + maze[state.x][state.y-1].toString();
+						if(state.equals(current)) {
+							maze[state.x][state.y-1].firstStep=maze[state.x][state.y-1];
+						}else {
+							maze[state.x][state.y-1].firstStep=maze[state.x][state.y].firstStep;
+						}
+						fringe.add(maze[state.x][state.y-1]);
+						}
+				
+				closed_set.add(state);
+			}
+			if(fringe.size() > maxFringe)
+				maxFringe = fringe.size();
+		}
+		System.out.println("Fire A* Search Nodes Checked: " + loopIter);
+		if(state.x==maze.length-1 && state.y==maze.length-1) {
+			System.out.println("Fire A* Search Path:" + state.path);
+			return state.firstStep;
+			}
+		return new Cell(-1, -1);
+	}
+	
+	public static boolean fireMazePath(Cell[][] maze, double q){
+		//Place fire into maze
+		int xFire = new Random().nextInt(maze.length);
+		int yFire = new Random().nextInt(maze.length);
+		while(maze[xFire][yFire].wall==true) {
+			xFire = new Random().nextInt(maze.length);
+			yFire = new Random().nextInt(maze.length);
+		}
+			maze[xFire][yFire].fire=true;
+			
+		Cell current=firePathSearch(maze, maze[0][0], maze[xFire][yFire]);
+		if(current.x==-1) {
+			return false;
+		}
+		Random rand = new Random();
+		double prob = 0;
+		while(!(current.x==maze.length-1 && current.y==maze.length-1)) {
+			printMaze(maze);
+			current=firePathSearch(maze, current, maze[xFire][yFire]);
+			if(current.x==-1) {
+				return false;
+			}
+			if(current.x==maze.length-1 && current.y==maze.length-1)
+				return true;
+			for(int i = 0; i<maze.length; i++){
+			    for(int j = 0; j<maze.length; j++){
+			    	if(maze[i][j].wall!=true) {
+			    		prob=1-Math.pow(1-q, adjacentFires(maze, maze[i][j]));
+			    		if(rand.nextDouble() <= prob)
+			    			maze[i][j].fire=true;
+			    		}
+			    }
+			}
+			if(current.fire==true)
+				return false;
+		}
+			
+			return true;
+	}
+	
 	public static void main(String []args) {
 		int size = 5;
-		double prob = 0.3;
+		double prob = .34011;
+		double q=.2;
 		//For testing
 		Cell[][] maze = generateMaze(size, prob);
+		printMaze(maze);
 		
-		for(int i = 0; i<size; i++){
-		    for(int j = 0; j<size; j++){
-		    	if(maze[i][j].wall==true) 
-		    		System.out.print("1 ");
-		    	else
-		    		System.out.print("0 ");
-		    }
-		    System.out.println();
-		}
+		//For testing Fire Maze
+		//System.out.println(firePathSearch(maze, maze[0][0], maze[xFire][yFire]));
+		System.out.println(fireMazePath(maze, q));
+		
 		//System.out.println(searchDFS(maze));
 		//System.out.println(searchBFS(maze));
 		//System.out.println(searchAstarEuclidian(maze));
@@ -520,18 +673,20 @@ public class project1 {
 		
 		
 		//For testing different sizes and p-values over large amounts of mazes
-	/*	int averageAstarManhatten = 0;
+		/*int average = 0;
 		int testLoops = 1000000;
+		prob=.34011;
 		for(int i = 0; i<testLoops;i++) {
 			maze=generateMaze(size, prob);
-			if(searchAstarManhatten(maze))
-				averageAstarManhatten++;
-		}
+			if(searchDFS(maze))
+				average++;
+		}*/
+		
 		//System.out.println("DFS success: " + averageDFS +  "/" + testLoops);
 		//System.out.println("DFS success: " + averageBFS +  "/" + testLoops);
 		//System.out.println("DFS success: " + averageAstarEiclidian + "/" + testLoops);
-		System.out.println("DFS success: " + averageAstarManhatten + "/" + testLoops);
-		*/
+		//System.out.println("DFS success: " + average + "/" + testLoops);
+		
 		
 		//For testing shortest path with different p-values over large amounts of mazes
 		/*prob=0.7;
@@ -578,9 +733,10 @@ public class project1 {
 			}
 			averageAstarManhatten=(double)sumAstarManhatten/testLoops;
 			averageAstarEuclidian=(double)sumAstarEuclidian/testLoops;
-			System.out.println("Euclidian average Nodes expanded: " + averageAstarEuclidian);
-			System.out.println("Manhatten average Nodes expanded: " + averageAstarManhatten);
+			System.out.println("Euclidean average Nodes expanded: " + averageAstarEuclidian);
+			System.out.println("Manhattan average Nodes expanded: " + averageAstarManhatten);
 			*/
+		
 	}
 	
 }
