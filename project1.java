@@ -26,6 +26,19 @@ public class project1 {
 	    public String toString() {
 	    	return "(" + x + "," + y + ")";
 	    }
+	    
+	    @Override
+	    public boolean equals(Object o) {
+	    	
+	    	if(o != null && o instanceof Cell) {
+	    		if(this.x == ((Cell)o).x){
+	    			if(this.y == ((Cell)o).y) 
+	    				return true;
+	    		}
+	    	}
+	    	
+	    	return false; 
+	    }
 	}
 	
 	static class compareEuclidian implements Comparator<Cell> 
@@ -61,6 +74,26 @@ public class project1 {
 	**/
 	public static int heuristicManhatten(int x1, int y1, int x2, int y2) {
 		return Math.abs(x1-x2) + Math.abs(y1-y2);
+	}
+	
+	 /**
+	 * Decides whether two graphs have an intersecting vertex 
+	 */
+	public static boolean intersectingGraphs(Cell[] a, Cell[] b) {
+		
+		if(a.length == 0 || b.length == 0) {
+			return false;
+		}
+		
+		for(int i = 0; i < a.length; i++) {
+			for(int j = 0; j < b.length; j++) {
+				if((a[i].x == b[j].x) && (a[i].y == b[j].y)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -313,6 +346,148 @@ public class project1 {
 		return false;
 	} 
 	
+	
+	public static boolean biDirectionalBFS(Cell[][] maze) {
+		Cell[][] maze_a = new Cell[maze.length][maze.length];
+		Cell[][] maze_b = new Cell[maze.length][maze.length];
+		
+		for(int i = 0; i < maze.length; i++) {
+			for(int j = 0; j < maze.length; j++) {
+				maze_a[i][j] = new Cell(maze[i][j].x, maze[i][j].y);
+				maze_a[i][j].wall = maze[i][j].wall; 
+				maze_b[i][j] = new Cell(maze[i][j].x, maze[i][j].y);
+				maze_b[i][j].wall = maze[i][j].wall; 
+			}
+		}
+		
+			
+		List<Cell> visited_a = new ArrayList<Cell>();
+		List<Cell> visited_b = new ArrayList<Cell>();
+		
+		int maxFringe = 0;
+		int loopIter=0;
+		int mazeLength = maze.length-1; 
+		
+		Queue<Cell> fringe_a = new LinkedList<Cell>();
+		Queue<Cell> fringe_b = new LinkedList<Cell>();
+		
+		fringe_a.add(maze_a[0][0]);
+		fringe_b.add(maze_b[mazeLength][mazeLength]);
+	
+		maze_a[0][0].path=maze_a[0][0].toString();
+		maze_b[mazeLength][mazeLength].path = maze_b[mazeLength][mazeLength].toString();
+		
+		
+		Cell state_a = null;
+		Cell state_b = null; 
+		
+		while (fringe_a.size()>0 && fringe_b.size()>0) {
+			state_a = fringe_a.poll();
+			state_b = fringe_b.poll();
+	
+			
+			//Both current nodes are the same, meaning the bidirectional path met. 
+			if(state_a.x==state_b.x && state_a.y==state_b.y) {
+				visited_a.add(state_a);
+				visited_b.add(state_b);
+				break;
+			}
+			
+			if(visited_a.contains(state_a) && visited_b.contains(state_a)) 
+				break;
+			if(visited_a.contains(state_b) && visited_b.contains(state_b)) 
+				break;
+			
+			
+			
+			if(!visited_a.contains(state_a)){
+				loopIter++;
+				
+				//Starting from source and working forward
+				if(state_a.x != mazeLength)
+					if(maze_a[state_a.x+1][state_a.y].wall == false && !visited_a.contains(maze_a[state_a.x+1][state_a.y])) {
+						maze_a[state_a.x+1][state_a.y].path = maze_a[state_a.x][state_a.y].path + ", " + maze_a[state_a.x+1][state_a.y].toString();
+						if(!fringe_a.contains(maze_a[state_a.x+1][state_a.y]))
+							fringe_a.add(maze_a[state_a.x+1][state_a.y]);
+					}
+				if(state_a.x != 0)
+					if(maze_a[state_a.x-1][state_a.y].wall == false && !visited_a.contains(maze_a[state_a.x-1][state_a.y])) {
+						maze_a[state_a.x-1][state_a.y].path = maze_a[state_a.x][state_a.y].path + ", " + maze_a[state_a.x-1][state_a.y].toString();
+						if(!fringe_a.contains(maze_a[state_a.x-1][state_a.y]))
+							fringe_a.add(maze_a[state_a.x-1][state_a.y]);
+					}
+				if(state_a.y != mazeLength)
+					if(maze_a[state_a.x][state_a.y+1].wall == false && !visited_a.contains(maze_a[state_a.x][state_a.y+1])) {
+						maze_a[state_a.x][state_a.y+1].path = maze_a[state_a.x][state_a.y].path + ", " + maze_a[state_a.x][state_a.y+1].toString();
+						if(!fringe_a.contains(maze_a[state_a.x][state_a.y+1]))
+							fringe_a.add(maze_a[state_a.x][state_a.y+1]);
+					}
+				if(state_a.y != 0)
+					if(maze_a[state_a.x][state_a.y-1].wall == false && !visited_a.contains(maze_a[state_a.x][state_a.y-1])) {
+						maze_a[state_a.x][state_a.y-1].path = maze_a[state_a.x][state_a.y].path + ", " + maze_a[state_a.x][state_a.y-1].toString();
+						if(!fringe_a.contains(maze_a[state_a.x][state_a.y-1]))
+							fringe_a.add(maze_a[state_a.x][state_a.y-1]);
+					}
+				
+				visited_a.add(state_a);      
+			}
+				
+			
+			if(visited_a.contains(state_b)) {
+				visited_b.add(state_b);
+				break; 
+			}
+			
+			
+			if(!visited_b.contains(state_b)) {
+				loopIter++;
+				//Starting from the goal and working backwards
+				if(state_b.x != mazeLength)
+					if(maze_b[state_b.x+1][state_b.y].wall == false && !visited_b.contains(maze_b[state_b.x+1][state_b.y])) {
+						maze_b[state_b.x+1][state_b.y].path = maze_b[state_b.x][state_b.y].path + ", " + maze_b[state_b.x+1][state_b.y].toString();
+						if(!fringe_b.contains(maze_b[state_b.x+1][state_b.y]))
+							fringe_b.add(maze_b[state_b.x+1][state_b.y]);
+					}
+				if(state_b.x != 0)
+					if(maze_b[state_b.x-1][state_b.y].wall == false && !visited_b.contains(maze_b[state_b.x-1][state_b.y])) {
+						maze_b[state_b.x-1][state_b.y].path = maze_b[state_b.x][state_b.y].path + ", " + maze_b[state_b.x-1][state_b.y].toString();
+						if(!fringe_b.contains(maze_b[state_b.x-1][state_b.y]))
+							fringe_b.add(maze_b[state_b.x-1][state_b.y]);
+					}
+				if(state_b.y != mazeLength)
+					if(maze_b[state_b.x][state_b.y+1].wall == false && !visited_b.contains(maze_b[state_b.x][state_b.y+1])) {
+						maze_b[state_b.x][state_b.y+1].path = maze_b[state_b.x][state_b.y].path + ", " + maze_b[state_b.x][state_b.y+1].toString();
+						if(!fringe_b.contains(maze_b[state_b.x][state_b.y+1]))
+							fringe_b.add(maze_b[state_b.x][state_b.y+1]);
+					}
+				if(state_b.y != 0)
+					if(maze_b[state_b.x][state_b.y-1].wall == false && !visited_b.contains(maze_b[state_b.x][state_b.y-1])) {
+						maze_b[state_b.x][state_b.y-1].path = maze_b[state_b.x][state_b.y].path + ", " + maze_b[state_b.x][state_b.y-1].toString();
+						if(!fringe_b.contains(maze_b[state_b.x][state_b.y-1]))
+							fringe_b.add(maze_b[state_b.x][state_b.y-1]);
+					}
+				
+				visited_b.add(state_b);
+				
+			}
+			if(fringe_a.size() > maxFringe || fringe_b.size() > maxFringe)
+				maxFringe = Math.max(fringe_a.size(), fringe_b.size());
+		}
+		System.out.println("BFS Nodes Checked: " + loopIter);
+		if(visited_a.contains(state_a) && visited_b.contains(state_a)) {
+			System.out.println("BFS Path: \nForward:" + maze_a[state_a.x][state_a.y].path + "\nBackward: " + maze_b[state_a.x][state_a.y].path);
+			return true;
+		}
+		if(visited_a.contains(state_b) && visited_b.contains(state_b)){
+			System.out.println("BFS Path: \nForward:" + maze_a[state_b.x][state_b.y].path + "\nBackward:" + maze_b[state_b.x][state_b.y].path);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
 	public static void main(String []args) {
 		int size = 5;
 		Cell[][] maze = generateMaze(size, .3);
@@ -327,10 +502,11 @@ public class project1 {
 		    System.out.println();
 		}
 		
-		System.out.println(searchDFS(maze));
-		System.out.println(searchBFS(maze));
-		System.out.println(searchAstarEuclidian(maze));
-		System.out.println(searchAstarManhatten(maze));
+		//System.out.println(searchDFS(maze));
+		//System.out.println(searchBFS(maze));
+		//System.out.println(searchAstarEuclidian(maze));
+		//System.out.println(searchAstarManhatten(maze));
+		System.out.println(biDirectionalBFS(maze));
 		
 	}
 }
