@@ -117,8 +117,8 @@ public class project1 {
 	* Provides heuristic based on Manhatten distance between the current state and goal state
 	* x1 and y1 belong to the current Cell. x2 and y2 belong to the goal cell. x3 and y3 belong to the first fire cell.
 	**/
-	public static int heuristicFire(int x1, int y1, int x2, int y2, int x3, int y3) {
-		return Math.abs(x1-x2) + Math.abs(y1-y2);
+	public static double heuristicFire(int x1, int y1, int x2, int y2, int x3, int y3) {
+		return Math.abs(x1-x2) + Math.abs(y1-y2) - 0.001*(Math.abs(x1-x3) + Math.abs(y1-y3));
 	}
 	
 	 /**
