@@ -577,7 +577,7 @@ public class project1 {
 		int size = 5; // dimensions of the maze 
 		int counter = 0; 
 		
-		while (condition != 0) {
+		while (condition != 0 && counter < 5) {
 			// The maze is solvable so we can add an obstruction 
 			for (int i = 0; i < size; i++) {
 				for (int j = 0; j < size; j++) {
@@ -591,12 +591,8 @@ public class project1 {
 			}
 			
 			// Check that the maze is still solvable 
-			int condition2 = searchBFS(maze);
-			if (condition2 != 0) {
-				// the maze is still solvable 
-				// save the path as one of 5 
-				
-			}
+			condition = searchBFS(maze);
+			counter++;
 		}
 		return false;
 	}
