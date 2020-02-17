@@ -572,6 +572,34 @@ public class project1 {
 		return false; 
 	}
 	
+	public static boolean beamSearchBFS(Cell[][] maze) {
+		int condition = searchBFS(maze);
+		int size = 5; // dimensions of the maze 
+		int counter = 0; 
+		
+		while (condition != 0) {
+			// The maze is solvable so we can add an obstruction 
+			for (int i = 0; i < size; i++) {
+				for (int j = 0; j < size; j++) {
+					while (counter != 1) {
+						if (maze[i][j].wall = false) {
+							maze[i][j].wall = true;
+							counter = 1; 
+						}
+					}
+				}
+			}
+			
+			// Check that the maze is still solvable 
+			int condition2 = searchBFS(maze);
+			if (condition2 != 0) {
+				// the maze is still solvable 
+				// save the path as one of 5 
+				
+			}
+		}
+		return false;
+	}
 	public static Cell firePathSearch(Cell[][] maze, Cell current, Cell fire) {
 		List<Cell> closed_set = new ArrayList<Cell>();
 		int maxFringe = 0;
@@ -695,7 +723,7 @@ public class project1 {
 		
 		//For testing Fire Maze
 		//System.out.println(firePathSearch(maze, maze[0][0], maze[xFire][yFire]));
-		System.out.println(fireMazePath(maze, q));
+		//System.out.println(fireMazePath(maze, q));
 		
 		//System.out.println(searchDFS(maze));
 		//System.out.println(searchBFS(maze));
@@ -703,6 +731,9 @@ public class project1 {
 		//System.out.println(searchAstarManhatten(maze));
 		//System.out.println(biDirectionalBFS(maze));
 		
+		//System.out.println(randomWalkBFS(maze));
+		
+		//System.out.println(beamSearch(maze)); // longest shortest path
 		
 		
 		//For testing different sizes and p-values over large amounts of mazes
