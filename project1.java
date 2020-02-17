@@ -539,6 +539,39 @@ public class project1 {
 		return false;
 	}
 	
+		/* 
+	 * Implemented a random walk - generate a maze and see if it is solvable using BFS algorithm 
+	 * Include one random obstruction and see if it solvable 
+	 * Return false if the added obstruction makes the maze unsolvable  
+	 */
+	
+	public static boolean randomWalkBFS(Cell[][] maze) {
+		
+		int condition = searchBFS(maze);
+		int size = 5; // dimensions of the maze 
+		int counter = 0; 
+		
+		if (condition != 0) {
+			// The maze is solvable so we can add an obstruction 
+			
+			for (int i = 0; i < size; i++) {
+				for (int j = 0; j < size; j++) {
+					while (counter != 1) {
+						if (maze[i][j].wall = false) {
+							maze[i][j].wall = true;
+							counter = 1; 
+						}
+					}
+				}
+			}
+			int condition2 = searchBFS(maze);
+			if (condition2 != 0) {
+				return true; 
+			}
+		}		
+		return false; 
+	}
+	
 	public static Cell firePathSearch(Cell[][] maze, Cell current, Cell fire) {
 		List<Cell> closed_set = new ArrayList<Cell>();
 		int maxFringe = 0;
