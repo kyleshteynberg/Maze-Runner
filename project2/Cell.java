@@ -5,7 +5,7 @@ public class Cell {
 	private int clue;
 	private int safeFound=0;
 	private int minesFound=0;
-	private int hidden;
+	private int hidden=8;
 	
   
 	public Cell(int x, int y) {
@@ -33,7 +33,7 @@ public class Cell {
 		mine=input;
 	}
 	
-	public int getClue(int input) {
+	public int getClue() {
 		return clue;
 	}
 	
@@ -41,7 +41,7 @@ public class Cell {
 		clue=input;
 	}
 	
-	public int getSafeFound(int input) {
+	public int getSafeFound() {
 		return safeFound;
 	}
 	
@@ -49,7 +49,7 @@ public class Cell {
 		clue=safeFound;
 	}
 	
-	public int getMinesFound(int input) {
+	public int getMinesFound() {
 		return minesFound;
 	}
 	
@@ -57,11 +57,11 @@ public class Cell {
 		minesFound=input;
 	}
 	
-	public int gethidden(int input) {
+	public int getHidden() {
 		return hidden;
 	}
 	
-	public void sethidden(int input) {
+	public void setHidden(int input) {
 		hidden=input;
 	}
 	
