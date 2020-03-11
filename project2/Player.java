@@ -2,15 +2,16 @@ package project2;
 
 public class Player {
 	
-	static Cell[][] KB;
-	static MineField environment;
-	static int boom=0;
+	Cell[][] KB;
+	MineField environment;
+	int boom=0;
 	
-	private static void importMap(MineField minefield) {
+	public Player(MineField minefield) {
 		environment=minefield;
+		KB = new Cell[minefield.size][minefield.size];
 	}
 
-	private static void openCell(Cell cell) {
+	public void openCell(Cell cell) {
 		int x = environment.queryLoc(cell.getx(), cell.gety());
 		KB[cell.getx()][cell.gety()].setClue(x);
 		
@@ -47,13 +48,39 @@ public class Player {
 		}
 	}
 	
-	private static int solve(MineField map) {
-		int score=0;
-		return score;
+	public int solve() {
+		//Total number of mines that were safely identified out of the total number of mines 
+		int minesIdentified=0;
+		int totalMines=0; 
+	
+		
+		openCell(new Cell((int)Math.random()*KB.length, (int)Math.random()*KB[0].length)); 
+		
+		
+		
+		return minesIdentified/totalMines;
 	}
 	
+	/**
+	 * Display the board
+	 */
+	public void display() {
+		for(int i=0; i<KB.length; i++) {
+			for(int j=0; j<KB[0].length; j++) {
+				if(KB[i][j].isMine()) 
+					System.out.print("* ");
+				else
+					System.out.print(KB[i][j].getClue() + " ");
+			}
+			System.out.println();
+		}
+	}
+	
+	
 	public static void main(String []args) {
-		importMap(new MineField(10, 5));
-		solve(environment);
+		
+		Player one = new Player(new MineField(10,5));
+		one.solve();
+		one.display();
 	}
 }

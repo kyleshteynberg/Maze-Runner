@@ -5,9 +5,13 @@ import java.util.Random;
 
 public class MineField {
 	Cell[][] grid;
+	int size;
+	int numOfMines; 
 	
-	public MineField(int size, int mines) {
+	public MineField(int dim, int mines) {
 		grid=MineGen(size, mines);
+		size = dim; 
+		numOfMines = mines; 
 	}
 	
 	/**
