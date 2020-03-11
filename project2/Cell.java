@@ -1,3 +1,5 @@
+package project2;
+
 public class Cell {
 	private int x;
 	private int y;

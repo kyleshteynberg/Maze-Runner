@@ -1,3 +1,5 @@
+package project2;
+
 import java.util.Random;
 
 
@@ -31,6 +33,16 @@ public class MineField {
 			grid[x][y].setMine(true);
 		}
 		
+		
+		
+		//Set clues for all the cells
+		for(int i=0; i<grid.length; i++) {
+			for(int j=0; j<grid[0].length; j++) {
+				if(!grid[i][j].isMine())
+					grid[i][j].setClue(adjacentMines(grid, grid[i][j]));
+			}
+		}
+		
 		return grid;
 	}
 
@@ -39,7 +51,7 @@ public class MineField {
 	 * Input: grid of cells and chosen cell
 	 * Output: returns number of adjacent cells with mines
 	 */
-	private int adjacentMines(Cell cell) {
+	private int adjacentMines(Cell[][] grid, Cell cell) {
 		int mines=0;
 		for(int i = -1; i<=1;i++) {
 			for(int j = -1; j<=1;j++) {
@@ -61,6 +73,26 @@ public class MineField {
 		if(grid[posx][posy].isMine()==true)	
 			return -1;
 		else 
-			return adjacentMines(grid[posx][posy]);
+			return grid[posx][posy].getClue();
+	}
+	
+	/**
+	 * Display the board
+	 */
+	public void display() {
+		for(int i=0; i<grid.length; i++) {
+			for(int j=0; j<grid[0].length; j++) {
+				if(grid[i][j].isMine()) 
+					System.out.print("* ");
+				else
+					System.out.print(grid[i][j].getClue() + " ");
+			}
+			System.out.println();
+		}
+	}
+	
+	public static void main(String[] args) {
+		MineField one = new MineField(10,5);
+		one.display();
 	}
 }
