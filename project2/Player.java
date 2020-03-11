@@ -34,8 +34,10 @@ public class Player {
 		openCell(getRandomCell());
 		
 		//Play till all cell in the knowledge base are revealed
-		while(cellsRevealed != KB.length*KB.length) {
-			openCell(inferenceCell());
+		//while(cellsRevealed != KB.length*KB.length) {
+		for(int i = 0; i < 10; i++) {
+			Cell curr = inferenceCell();
+			openCell(curr);
 		}
 		
 		//return minesIdentified/numOfMines;
@@ -44,22 +46,31 @@ public class Player {
 	
 	public Cell inferenceCell() {
 		
-		//if there are pending moves. return the next pending moves
-		if(pendingMoves.size() > 0) {
-			return pendingMoves.remove(0);
-		}
 		
-		//if the last opened cell has a clue of 0, add all the cells around to pending moves
+		//if the last opened cell has a clue of 0, add all the cells around that cell to pending moves
 		Cell previous = pastMoves.get(pastMoves.size()-1);
-		if(previous.getClue() == 0) {
+		if(KB[previous.getx()][previous.gety()].getClue() == 0) {
 			for(int i = -1; i<=1;i++) {
 				for(int j = -1; j<=1;j++) {
 					if(previous.getx()+i>=0 && previous.getx()+i<KB.length && previous.gety()+j>=0 && previous.gety()+j<KB.length) {
-						pendingMoves.add(new Cell(i,j));
+						Cell nextmove = new Cell(previous.getx()+i,previous.gety()+j);
+						if(!pastMoves.contains(nextmove))
+							pendingMoves.add(nextmove);
 					}
 				}
 			}
 		}
+		
+		//if there are pending moves. return the next pending move
+		if(pendingMoves.size() > 0) {
+			while(pendingMoves.size()>0) {
+				if(!pastMoves.contains(pendingMoves.get(0)))
+					return pendingMoves.remove(0);
+				else 
+					pendingMoves.remove(0);
+			}		
+		}
+				
 		
 		//return Random Cell
 		Cell rand = getRandomCell();
@@ -71,6 +82,7 @@ public class Player {
 	}
 
 	public void openCell(Cell cell) {
+		System.out.println("OPENING CELL: " + cell);
 		int x = environment.queryLoc(cell.getx(), cell.gety());
 		KB[cell.getx()][cell.gety()].setClue(x);
 		pastMoves.add(cell);
