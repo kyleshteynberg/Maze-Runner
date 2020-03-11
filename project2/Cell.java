@@ -48,7 +48,7 @@ public class Cell {
 	}
 	
 	public void setSafeFound(int input) {
-		clue=safeFound;
+		safeFound=input;
 	}
 	
 	public int getMinesFound() {

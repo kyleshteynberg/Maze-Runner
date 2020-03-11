@@ -9,9 +9,9 @@ public class MineField {
 	int numOfMines; 
 	
 	public MineField(int dim, int mines) {
-		grid=MineGen(size, mines);
 		size = dim; 
 		numOfMines = mines; 
+		grid=MineGen(size, numOfMines);
 	}
 	
 	/**
