@@ -1,14 +1,24 @@
-package project2; 
+package project2;
+
+import java.util.ArrayList;
 
 public class Player {
 	
 	Cell[][] KB;
+	ArrayList<Cell> pastMoves;
+	ArrayList<Cell> pendingMoves;
 	MineField environment;
 	int numOfMines;
+	int minesIdentified; 
+	int cellsRevealed; 
 	
 	public Player(MineField minefield) {
 		environment=minefield;
 		numOfMines = 0;
+		minesIdentified = 0;
+		cellsRevealed = 0;
+		pastMoves = new ArrayList<Cell>();
+		pendingMoves = new ArrayList<Cell>();
 		
 		//Initialize the Knowledge base with empty cells
 		KB = new Cell[minefield.size][minefield.size];
@@ -20,18 +30,51 @@ public class Player {
 	}
 	
 	public int solve() {
-		//Total number of mines that were safely identified out of the total number of mines 
-		int minesIdentified=0; 
-	
-		openCell(getRandomCell()); 
+		//First move is random
+		openCell(getRandomCell());
 		
-		//return minesIdentified/totalMines;
+		//Play till all cell in the knowledge base are revealed
+		while(cellsRevealed != KB.length*KB.length) {
+			openCell(inferenceCell());
+		}
+		
+		//return minesIdentified/numOfMines;
 		return 1;
+	}
+	
+	public Cell inferenceCell() {
+		
+		//if there are pending moves. return the next pending moves
+		if(pendingMoves.size() > 0) {
+			return pendingMoves.remove(0);
+		}
+		
+		//if the last opened cell has a clue of 0, add all the cells around to pending moves
+		Cell previous = pastMoves.get(pastMoves.size()-1);
+		if(previous.getClue() == 0) {
+			for(int i = -1; i<=1;i++) {
+				for(int j = -1; j<=1;j++) {
+					if(previous.getx()+i>=0 && previous.getx()+i<KB.length && previous.gety()+j>=0 && previous.gety()+j<KB.length) {
+						pendingMoves.add(new Cell(i,j));
+					}
+				}
+			}
+		}
+		
+		//return Random Cell
+		Cell rand = getRandomCell();
+		while(pastMoves.contains(rand)) {
+			rand = getRandomCell();
+		}
+		
+		return rand;
 	}
 
 	public void openCell(Cell cell) {
 		int x = environment.queryLoc(cell.getx(), cell.gety());
 		KB[cell.getx()][cell.gety()].setClue(x);
+		pastMoves.add(cell);
+		cellsRevealed++; 
 		
 		//Cell is a mine
 		if(KB[cell.getx()][cell.gety()].getClue()==-1) {
