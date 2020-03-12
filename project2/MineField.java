@@ -67,7 +67,8 @@ public class MineField {
 		
 		return mines;
 	}
-
+	
+	
 	/**
 	 * Allows player to query cell at given location
 	 * Input: x and y coord of cell

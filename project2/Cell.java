@@ -7,7 +7,7 @@ public class Cell {
 	private int clue;
 	private int safeFound=0;
 	private int minesFound=0;
-	private int hidden=8;
+	private int hidden=0;
 	
   
 	public Cell(int x, int y) {

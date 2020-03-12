@@ -7,6 +7,8 @@ public class Player {
 	Cell[][] KB;
 	ArrayList<Cell> pastMoves;
 	ArrayList<Cell> pendingMoves;
+	ArrayList<Cell> prospectCells; 
+	ArrayList<Cell> minesFound;
 	MineField environment;
 	int numOfMines;
 	int minesIdentified; 
@@ -19,12 +21,15 @@ public class Player {
 		cellsRevealed = 0;
 		pastMoves = new ArrayList<Cell>();
 		pendingMoves = new ArrayList<Cell>();
+		prospectCells = new ArrayList<Cell>();
+		minesFound = new ArrayList<Cell>();
 		
-		//Initialize the Knowledge base with empty cells
+		//Initialize the Knowledge base with empty cells and updates the hidden cells around them
 		KB = new Cell[minefield.size][minefield.size];
 		for(int i = 0; i < minefield.size; i++) {
 			for(int j = 0; j < minefield.size; j++) {
 				KB[i][j] = new Cell(i,j);
+				KB[i][j].setHidden(adjacentCells(KB, new Cell(i,j)));
 			}
 		}
 	}
@@ -34,10 +39,14 @@ public class Player {
 		openCell(getRandomCell());
 		
 		//Play till all cell in the knowledge base are revealed
-		//while(cellsRevealed != KB.length*KB.length) {
-		for(int i = 0; i < 10; i++) {
+		while(cellsRevealed != KB.length*KB.length) {
+		//for(int i = 0; i < 20; i++) {
 			Cell curr = inferenceCell();
+			if(curr.equals(new Cell(10,10))) {
+				return 1;
+			}
 			openCell(curr);
+			display();
 		}
 		
 		//return minesIdentified/numOfMines;
@@ -47,8 +56,15 @@ public class Player {
 	public Cell inferenceCell() {
 		
 		
-		//if the last opened cell has a clue of 0, add all the cells around that cell to pending moves
+		
 		Cell previous = pastMoves.get(pastMoves.size()-1);
+		
+		//if the last opened cell has a clue greater than 0. Than add it to a list to prospect later 
+		if(KB[previous.getx()][previous.gety()].getClue() > 0) {
+			prospectCells.add(previous);
+		}
+		
+		//if the last opened cell has a clue of 0, add all the cells around that cell to pending moves
 		if(KB[previous.getx()][previous.gety()].getClue() == 0) {
 			for(int i = -1; i<=1;i++) {
 				for(int j = -1; j<=1;j++) {
@@ -61,6 +77,7 @@ public class Player {
 			}
 		}
 		
+		
 		//if there are pending moves. return the next pending move
 		if(pendingMoves.size() > 0) {
 			while(pendingMoves.size()>0) {
@@ -70,8 +87,60 @@ public class Player {
 					pendingMoves.remove(0);
 			}		
 		}
-				
 		
+		
+		if(prospectCells.size()>0) {
+			while(prospectCells.size()>0) {
+				int counter = 1;
+				
+				while(counter<3) {
+					
+					for(int i = 0; i<prospectCells.size(); i++) {
+						Cell index = prospectCells.get(i);
+						
+						if(KB[index.getx()][index.gety()].getClue()==1) {
+							//Look at the 1s first 
+							if(KB[index.getx()][index.gety()].getHidden() == 1) {
+								for(int row = -1; row<=1;row++) {
+									for(int col = -1; col<=1;col++) {
+										if(index.getx()+row>=0 && index.getx()+row<KB.length && index.gety()+col>=0 && index.gety()+col<KB.length) {
+											if(!pastMoves.contains(KB[index.getx()+row][index.gety()+col]) ) {
+												pastMoves.add(index);
+												minesFound.add(index);
+												minesIdentified++;
+												numOfMines++;
+												KB[index.getx()+row][index.gety()+col].setMine(true);
+												prospectCells.remove(i);
+												mineFound(new Cell(index.getx()+row,index.gety()+col));
+											}
+										}
+									}
+								}
+							}
+							
+							
+						}
+					}
+					counter++;
+				}
+				break;
+			}
+		}
+		
+		System.out.println(pendingMoves);
+		
+		//if there are pending moves. return the next pending move
+		if(pendingMoves.size() > 0) {
+			while(pendingMoves.size()>0) {
+				if(!pastMoves.contains(pendingMoves.get(0)))
+					return pendingMoves.remove(0);
+				else 
+					pendingMoves.remove(0);
+			}		
+		}
+		
+		return new Cell(10,10);
+		/*
 		//return Random Cell
 		Cell rand = getRandomCell();
 		while(pastMoves.contains(rand)) {
@@ -79,12 +148,16 @@ public class Player {
 		}
 		
 		return rand;
+		*/
 	}
-
+	/**
+	 * opens a cell in the Knowledge base and updates its contents
+	 * @param cell
+	 */
 	public void openCell(Cell cell) {
 		System.out.println("OPENING CELL: " + cell);
 		int x = environment.queryLoc(cell.getx(), cell.gety());
-		KB[cell.getx()][cell.gety()].setClue(x);
+		KB[cell.getx()][cell.gety()].setClue(x - minesAround(cell));
 		pastMoves.add(cell);
 		cellsRevealed++; 
 		
@@ -99,6 +172,23 @@ public class Player {
 			isSafe(cell);
 		}
 		
+	}
+	
+	/**
+	 * Gets the number of cells around a particular cell
+	 * @param grid
+	 * @param cell
+	 * @return
+	 */
+	private int adjacentCells(Cell[][] grid, Cell cell) {
+		int hidden=0;
+		for(int i = -1; i<=1;i++) {
+			for(int j = -1; j<=1;j++) {
+				if(cell.getx()+i>=0 && cell.getx()+i<grid.length && cell.gety()+j>=0 && cell.gety()+j<grid.length)
+					hidden++;
+			}
+		}
+		return hidden;
 	}
 	
 	/**
@@ -156,6 +246,67 @@ public class Player {
 	}
 
 	/**
+	 * Decreases the clue of all cells around it by 1
+	 * Also adds the cells that will have a clue of 0 after this into the pendingMoves list
+	 * @param cell
+	 */
+	public void mineFound(Cell cell) {
+		
+		for(int i = -1; i<=1;i++) {
+			for(int j = -1; j<=1;j++) {
+				if(cell.getx()+i>=0 && cell.getx()+i<KB.length && cell.gety()+j>=0 && cell.gety()+j<KB.length) {
+					
+					//if you already visited a cell and they have a clue bigger than 0
+					if(pastMoves.contains(KB[cell.getx()+i][cell.gety()+j]) && KB[cell.getx()+i][cell.gety()+j].getClue()>0) {
+						//Decrease each cell's clue by one
+						int currentClue = KB[cell.getx()+i][cell.gety()+j].getClue();
+						int currentHidden = KB[cell.getx()+i][cell.gety()+j].getHidden();
+						
+						KB[cell.getx()+i][cell.gety()+j].setClue(currentClue-1);
+						KB[cell.getx()+i][cell.gety()+j].setClue(currentHidden-1);
+						
+						if(currentClue == 1) {
+							prospectCells.remove(KB[cell.getx()+i][cell.gety()+j]);
+							
+							//if a cell has a clue of 1 and the mine was found that cell was referring too. 
+							//All cells that haven't been opened around them are safe so add them to pending moves
+							for(int row = -1; row<=1;row++) {
+								for(int col = -1; col<=1;col++) {
+									if(cell.getx()+i+row>=0 && cell.getx()+i+row<KB.length && cell.gety()+j+col>=0 && cell.gety()+j+col<KB.length) {
+										if(!pastMoves.contains(KB[cell.getx()+i+row][cell.gety()+j+col])) {
+											pendingMoves.add(new Cell(cell.getx()+i+row,cell.gety()+j+col));
+										}
+									}
+								}
+							}
+						}
+					}
+					
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Gets the number of known mines around a cell
+	 * @param cell
+	 */
+	public int minesAround(Cell cell) {
+		int mines = 0;
+		
+		for(int i = -1; i<=1;i++) {
+			for(int j = -1; j<=1;j++) {
+				if(cell.getx()+i>=0 && cell.getx()+i<KB.length && cell.gety()+j>=0 && cell.gety()+j<KB.length) {
+					if(pastMoves.contains(KB[cell.getx()+i][cell.gety()+j]) && KB[cell.getx()+i][cell.gety()+j].isMine()) {
+						mines++;
+					}
+				}
+			}
+		}
+		
+		return mines;
+	}
+	/**
 	 * Display the board
 	 */
 	public void display() {
@@ -163,7 +314,9 @@ public class Player {
 			for(int j=0; j<KB[0].length; j++) {
 				if(KB[i][j].isMine()) 
 					System.out.print("* ");
-				else
+				else if(pastMoves.contains(KB[i][j]) && KB[i][j].getClue() == 0)
+					System.out.print("O ");
+				else 
 					System.out.print(KB[i][j].getClue() + " ");
 			}
 			System.out.println();
@@ -173,7 +326,7 @@ public class Player {
 	
 	public static void main(String []args) {
 		
-		MineField answer = new MineField(10,5);
+		MineField answer = new MineField(10,8);
 		Player one = new Player(answer);
 		one.solve();
 		
