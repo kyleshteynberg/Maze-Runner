@@ -10,8 +10,8 @@ public class Player {
 	ArrayList<Cell> prospectCells; 
 	ArrayList<Cell> minesFound;
 	MineField environment;
-	int numOfMines;
-	int minesIdentified; 
+	double numOfMines;
+	double minesIdentified; 
 	int cellsRevealed; 
 	
 	public Player(MineField minefield) {
@@ -42,17 +42,24 @@ public class Player {
 		while(cellsRevealed != KB.length*KB.length) {
 		//for(int i = 0; i < 20; i++) {
 			Cell curr = inferenceCell();
-			if(curr.equals(new Cell(10,10))) {
-				return 1;
-			}
+			//if(curr.equals(new Cell(10,10))) {
+			//System.out.println("MINES INDENTIFIED: " + minesIdentified + 
+			//		"\nNUMBER OF TOTAL MINES: " + numOfMines);
+			//System.out.println(minesFound);
+			//	return 1;
+			//}
 			openCell(curr);
-			display();
 		}
 		
-		//return minesIdentified/numOfMines;
-		return 1;
+		System.out.println("MINES INDENTIFIED: " + minesIdentified + 
+				"\nNUMBER OF TOTAL MINES: " + numOfMines);
+		return (int)((minesIdentified/numOfMines)*100);
 	}
 	
+	/**
+	 * Using the current clues in the Knowledge base, infers a cell that will be safe to open
+	 * @return
+	 */
 	public Cell inferenceCell() {
 		
 		
@@ -89,45 +96,40 @@ public class Player {
 		}
 		
 		
-		if(prospectCells.size()>0) {
-			while(prospectCells.size()>0) {
-				int counter = 1;
-				
-				while(counter<3) {
+		while(prospectCells.size()>0) {
+			Cell index = prospectCells.remove(0);
+			int counter = 1;
+			
+			while(counter < 3) {
+				if(KB[index.getx()][index.gety()].getClue()==counter) {
 					
-					for(int i = 0; i<prospectCells.size(); i++) {
-						Cell index = prospectCells.get(i);
-						
-						if(KB[index.getx()][index.gety()].getClue()==1) {
-							//Look at the 1s first 
-							if(KB[index.getx()][index.gety()].getHidden() == 1) {
-								for(int row = -1; row<=1;row++) {
-									for(int col = -1; col<=1;col++) {
-										if(index.getx()+row>=0 && index.getx()+row<KB.length && index.gety()+col>=0 && index.gety()+col<KB.length) {
-											if(!pastMoves.contains(KB[index.getx()+row][index.gety()+col]) ) {
-												pastMoves.add(index);
-												minesFound.add(index);
-												minesIdentified++;
-												numOfMines++;
-												KB[index.getx()+row][index.gety()+col].setMine(true);
-												prospectCells.remove(i);
-												mineFound(new Cell(index.getx()+row,index.gety()+col));
-											}
-										}
+					//Look at the 1s that are in corners 
+					if(KB[index.getx()][index.gety()].getHidden() == counter) {
+						for(int row = -1; row<=1;row++) {
+							for(int col = -1; col<=1;col++) {
+								if(index.getx()+row>=0 && index.getx()+row<KB.length && index.gety()+col>=0 && index.gety()+col<KB.length) {
+									if(!pastMoves.contains(KB[index.getx()+row][index.gety()+col]) && !minesFound.contains(KB[index.getx()+row][index.gety()+col])) {
+										System.out.println("FOUND MINE IN: " + KB[index.getx()+row][index.gety()+col]);
+										pastMoves.add(KB[index.getx()+row][index.gety()+col]);
+										minesFound.add(KB[index.getx()+row][index.gety()+col]);
+										minesIdentified++;
+										numOfMines++;
+										KB[index.getx()+row][index.gety()+col].setMine(true);
+										//prospectCells.remove(i);
+										mineFound(new Cell(index.getx()+row,index.gety()+col));
+										cellsRevealed++;
 									}
 								}
 							}
-							
-							
 						}
 					}
-					counter++;
 				}
-				break;
+				counter++;
 			}
 		}
 		
-		System.out.println(pendingMoves);
+		
+		//System.out.println(pendingMoves);
 		
 		//if there are pending moves. return the next pending move
 		if(pendingMoves.size() > 0) {
@@ -138,9 +140,10 @@ public class Player {
 					pendingMoves.remove(0);
 			}		
 		}
+
 		
-		return new Cell(10,10);
-		/*
+		//return new Cell(10,10);
+		
 		//return Random Cell
 		Cell rand = getRandomCell();
 		while(pastMoves.contains(rand)) {
@@ -148,14 +151,14 @@ public class Player {
 		}
 		
 		return rand;
-		*/
+		
 	}
 	/**
 	 * opens a cell in the Knowledge base and updates its contents
 	 * @param cell
 	 */
 	public void openCell(Cell cell) {
-		System.out.println("OPENING CELL: " + cell);
+		//System.out.println("OPENING CELL: " + cell);
 		int x = environment.queryLoc(cell.getx(), cell.gety());
 		KB[cell.getx()][cell.gety()].setClue(x - minesAround(cell));
 		pastMoves.add(cell);
@@ -198,7 +201,7 @@ public class Player {
 	public Cell getRandomCell() {
 		int x = (int)(Math.random()*KB.length);
 		int y = (int)(Math.random()*KB.length);
-		System.out.println("\nRANDOM CELL GENERATED: " + "(" + x + "," + y + ")");
+		//System.out.println("\nRANDOM CELL GENERATED: " + "(" + x + "," + y + ")");
 		
 		return new Cell(x,y);
 	}
@@ -263,21 +266,29 @@ public class Player {
 						int currentHidden = KB[cell.getx()+i][cell.gety()+j].getHidden();
 						
 						KB[cell.getx()+i][cell.gety()+j].setClue(currentClue-1);
-						KB[cell.getx()+i][cell.gety()+j].setClue(currentHidden-1);
+						KB[cell.getx()+i][cell.gety()+j].setHidden(currentHidden-1);
+						
 						
 						if(currentClue == 1) {
 							prospectCells.remove(KB[cell.getx()+i][cell.gety()+j]);
 							
-							//if a cell has a clue of 1 and the mine was found that cell was referring too. 
+							//if a cell has a clue of 1 and the mine that cell was referring too was found. 
 							//All cells that haven't been opened around them are safe so add them to pending moves
 							for(int row = -1; row<=1;row++) {
 								for(int col = -1; col<=1;col++) {
 									if(cell.getx()+i+row>=0 && cell.getx()+i+row<KB.length && cell.gety()+j+col>=0 && cell.gety()+j+col<KB.length) {
 										if(!pastMoves.contains(KB[cell.getx()+i+row][cell.gety()+j+col])) {
-											pendingMoves.add(new Cell(cell.getx()+i+row,cell.gety()+j+col));
+											if(!pendingMoves.contains(KB[cell.getx()+i+row][cell.gety()+j+col])) {
+												pendingMoves.add(KB[cell.getx()+i+row][cell.gety()+j+col]);
+											}
 										}
 									}
 								}
+							}
+						}
+						if(currentClue == 2) {
+							if(!prospectCells.contains(KB[cell.getx()+i][cell.gety()+j])) {
+								prospectCells.add(KB[cell.getx()+i][cell.gety()+j]);
 							}
 						}
 					}
@@ -306,6 +317,7 @@ public class Player {
 		
 		return mines;
 	}
+	
 	/**
 	 * Display the board
 	 */
@@ -328,7 +340,7 @@ public class Player {
 		
 		MineField answer = new MineField(10,8);
 		Player one = new Player(answer);
-		one.solve();
+		System.out.println("SCORE: " + one.solve());
 		
 		System.out.println("Knowledge Base:");
 		one.display();
