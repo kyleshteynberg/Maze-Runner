@@ -59,24 +59,26 @@ public class Player {
 		openCell(getRandomCell());
 		
 		//Play till all cell in the knowledge base are revealed
-		//while(cellsRevealed != KB.length*KB.length) {
-		for(int i = 0; i < 100; i++) {
+		while(cellsRevealed != KB.length*KB.length) {
+		//for(int i = 0; i < 100; i++) {
 			Cell curr = inferenceCell();
 			if(curr.equals(new Cell(10,10))) {
-				System.out.println("MINES INDENTIFIED: " + minesIdentified + 
-					"\nNUMBER OF TOTAL MINES: " + numOfMines);
-				System.out.println(minesFound);
-				return 1;
+				break;
+		//		System.out.println("MINES INDENTIFIED: " + minesIdentified + 
+		//			"\nNUMBER OF TOTAL MINES: " + numOfMines);
+		//		System.out.println(minesFound);
+		//		return 1;
 			}
 			openCell(curr);
+			cellsRevealed++;
 			display();
-			System.out.println(prospectCells);
+		//	System.out.println(prospectCells);
 			System.out.println();
 		}
-		return -1;
-		//System.out.println("MINES INDENTIFIED: " + minesIdentified + 
-		//		"\nNUMBER OF TOTAL MINES: " + numOfMines);
-		//return (int)((minesIdentified/numOfMines)*100);
+		//return -1;
+		System.out.println("MINES INDENTIFIED: " + minesIdentified + 
+				"\nNUMBER OF TOTAL MINES: " + numOfMines);
+		return (int)((minesIdentified/numOfMines)*100);
 	}
 	
 	/**
@@ -84,8 +86,6 @@ public class Player {
 	 * @return
 	 */
 	public Cell inferenceCell() {
-		
-		
 		
 		Cell previous = pastMoves.get(pastMoves.size()-1);
 		
@@ -106,7 +106,6 @@ public class Player {
 				}
 			}
 		}
-		
 		
 		//if there are pending moves. return the next pending move
 		//Some moves might have repeated so if we already made a pending move, then we 
@@ -154,8 +153,6 @@ public class Player {
 		}
 		
 		
-		System.out.println(prospectCells);
-		
 		//if there are pending moves. return the next pending move
 		if(pendingMoves.size() > 0) {
 			while(pendingMoves.size()>0) {
@@ -170,13 +167,13 @@ public class Player {
 		//return new Cell(10,10);
 		
 		//return Random Cell
-		if(cellsRevealed != KB.length*KB.length) {
-			return getRandomCell();
-		}
-		else {
-			System.out.println(cellsRevealed);
-			return new Cell(10,10);
-		}
+		//if(cellsRevealed != KB.length*KB.length) {
+		return getRandomCell();
+		//}
+		//else {
+		//	System.out.println(cellsRevealed);
+		//	return new Cell(10,10);
+		//}
 		//while(pastMoves.contains(rand)) {
 		//	rand = getRandomCell();
 		//}
@@ -189,14 +186,16 @@ public class Player {
 	 * @param cell
 	 */
 	public void openCell(Cell cell) {
-		System.out.println("OPENING CELL: " + cell);
+		//System.out.println("OPENING CELL: " + cell);
 		int x = environment.queryLoc(cell.getx(), cell.gety());
 		if(x != -1) {
 			KB[cell.getx()][cell.gety()].setClue(x - minesAround(cell));
 		}
+		else if(x == -1) {
+			KB[cell.getx()][cell.gety()].setClue(x);
+		}
 		allHiddenCells.remove(cell);
-		pastMoves.add(cell);
-		cellsRevealed++; 
+		pastMoves.add(cell); 
 		
 		//Cell is a mine
 		if(KB[cell.getx()][cell.gety()].getClue()==-1) {
@@ -215,8 +214,11 @@ public class Player {
 	 * @return
 	 */
 	public Cell getRandomCell() {
+		if(allHiddenCells.size() == 0) {
+			return new Cell(10,10);
+		}
 		Cell rand = allHiddenCells.get((int)(Math.random()*allHiddenCells.size()));
-		System.out.println("\nRANDOM CELL GENERATED: " + "(" + rand.getx() + "," + rand.gety() + ")");
+		//System.out.println("\nRANDOM CELL GENERATED: " + "(" + rand.getx() + "," + rand.gety() + ")");
 		
 		return rand;
 	}
@@ -228,7 +230,7 @@ public class Player {
 	 * @param cell
 	 */
 	public void isMine(Cell cell) {
-		
+		System.out.println("A MINE WAS CHOSEN");
 		numOfMines++;
 		KB[cell.getx()][cell.gety()].setMine(true);
 		mineFound(new Cell(cell.getx(),cell.gety()));
@@ -368,7 +370,7 @@ public class Player {
 	
 	public static void main(String []args) {
 		
-		MineField answer = new MineField(10,8);
+		MineField answer = new MineField(3,3);
 		Player one = new Player(answer);
 		System.out.println("SCORE: " + one.solve());
 		
