@@ -37,13 +37,30 @@ public class Player {
 		}
 	}
 	
+	/**
+	 * Gets the number of hidden cells around a particular cell
+	 * @param grid
+	 * @param cell
+	 * @return
+	 */
+	private int adjacentCells(Cell[][] grid, Cell cell) {
+		int hidden=0;
+		for(int i = -1; i<=1;i++) {
+			for(int j = -1; j<=1;j++) {
+				if(cell.getx()+i>=0 && cell.getx()+i<grid.length && cell.gety()+j>=0 && cell.gety()+j<grid.length)
+					hidden++;
+			}
+		}
+		return hidden;
+	}
+	
 	public int solve() {
 		//First move is random
 		openCell(getRandomCell());
 		
 		//Play till all cell in the knowledge base are revealed
 		//while(cellsRevealed != KB.length*KB.length) {
-		for(int i = 0; i < 200; i++) {
+		for(int i = 0; i < 100; i++) {
 			Cell curr = inferenceCell();
 			if(curr.equals(new Cell(10,10))) {
 				System.out.println("MINES INDENTIFIED: " + minesIdentified + 
@@ -53,6 +70,7 @@ public class Player {
 			}
 			openCell(curr);
 			display();
+			System.out.println(prospectCells);
 			System.out.println();
 		}
 		return -1;
@@ -118,11 +136,11 @@ public class Player {
 									if(!pastMoves.contains(KB[index.getx()+row][index.gety()+col]) && !minesFound.contains(KB[index.getx()+row][index.gety()+col])) {
 										System.out.println("FOUND MINE IN: " + KB[index.getx()+row][index.gety()+col]);
 										pastMoves.add(KB[index.getx()+row][index.gety()+col]);
+										allHiddenCells.remove(KB[index.getx()+row][index.gety()+col]);
 										minesFound.add(KB[index.getx()+row][index.gety()+col]);
 										minesIdentified++;
 										numOfMines++;
 										KB[index.getx()+row][index.gety()+col].setMine(true);
-										//prospectCells.remove(i);
 										mineFound(new Cell(index.getx()+row,index.gety()+col));
 										cellsRevealed++;
 									}
@@ -156,6 +174,7 @@ public class Player {
 			return getRandomCell();
 		}
 		else {
+			System.out.println(cellsRevealed);
 			return new Cell(10,10);
 		}
 		//while(pastMoves.contains(rand)) {
@@ -181,7 +200,6 @@ public class Player {
 		
 		//Cell is a mine
 		if(KB[cell.getx()][cell.gety()].getClue()==-1) {
-			numOfMines++;
 			isMine(cell);
 		}
 		
@@ -189,32 +207,15 @@ public class Player {
 		if(KB[cell.getx()][cell.gety()].getClue()>=0) {
 			isSafe(cell);
 		}
-		
 	}
 	
-	/**
-	 * Gets the number of hidden cells around a particular cell
-	 * @param grid
-	 * @param cell
-	 * @return
-	 */
-	private int adjacentCells(Cell[][] grid, Cell cell) {
-		int hidden=0;
-		for(int i = -1; i<=1;i++) {
-			for(int j = -1; j<=1;j++) {
-				if(cell.getx()+i>=0 && cell.getx()+i<grid.length && cell.gety()+j>=0 && cell.gety()+j<grid.length)
-					hidden++;
-			}
-		}
-		return hidden;
-	}
 	
 	/**
-	 * return a random cell for when we can't deduce a cell from inference
+	 * return a random cell for when we can't pick a cell from inference
 	 * @return
 	 */
 	public Cell getRandomCell() {
-		Cell rand = allHiddenCells.get((int)(Math.random()*allHiddenCells.size())-1);
+		Cell rand = allHiddenCells.get((int)(Math.random()*allHiddenCells.size()));
 		System.out.println("\nRANDOM CELL GENERATED: " + "(" + rand.getx() + "," + rand.gety() + ")");
 		
 		return rand;
@@ -227,18 +228,11 @@ public class Player {
 	 * @param cell
 	 */
 	public void isMine(Cell cell) {
+		
+		numOfMines++;
 		KB[cell.getx()][cell.gety()].setMine(true);
-		for(int i = -1; i<=1;i++) {
-			for(int j = -1; j<=1;j++) {
-				if(cell.getx()+i>=0 && cell.getx()+i<KB.length && cell.gety()+j>=0 && cell.gety()+j<KB.length) {
-					int current = KB[cell.getx()+i][cell.gety()+j].getMinesFound();
-					KB[cell.getx()+i][cell.gety()+j].setMinesFound(current+1);
-					
-					current = KB[cell.getx()+i][cell.gety()+j].getHidden();
-					KB[cell.getx()+i][cell.gety()+j].setHidden(current-1);
-				}
-			}
-		}
+		mineFound(new Cell(cell.getx(),cell.gety()));
+		minesFound.add(KB[cell.getx()][cell.gety()]);
 	}
 	
 	/**
@@ -248,6 +242,7 @@ public class Player {
 	 * @param cell
 	 */
 	public void isSafe(Cell cell) {
+		
 		KB[cell.getx()][cell.gety()].setMine(false);
 		for(int i = -1; i<=1;i++) {
 			for(int j = -1; j<=1;j++) {
@@ -257,6 +252,18 @@ public class Player {
 					
 					current = KB[cell.getx()+i][cell.gety()+j].getHidden();
 					KB[cell.getx()+i][cell.gety()+j].setHidden(current-1);
+				}
+			}
+		}
+		
+		//This new clue can be used in conjunction with other clues to figure out stuff. Thus we have to add
+		//all current cells that have a clue greater than 1 to the prospect list
+		if(prospectCells.size() == 0) {
+			for(int i = 0; i < KB.length; i++) {
+				for(int j = 0; j < KB[0].length; j++) {
+					if(KB[i][j].getClue()>0) {
+						prospectCells.add(KB[i][j]);
+					}
 				}
 			}
 		}
@@ -278,8 +285,10 @@ public class Player {
 						//Decrease each cell's clue by one
 						int currentClue = KB[cell.getx()+i][cell.gety()+j].getClue();
 						int currentHidden = KB[cell.getx()+i][cell.gety()+j].getHidden();
+						int currentMinesFound = KB[cell.getx()+i][cell.gety()+j].getMinesFound();
 						
 						KB[cell.getx()+i][cell.gety()+j].setClue(currentClue-1);
+						KB[cell.getx()+i][cell.gety()+j].setMinesFound(currentMinesFound+1);
 						KB[cell.getx()+i][cell.gety()+j].setHidden(currentHidden-1);
 						
 						
@@ -306,7 +315,14 @@ public class Player {
 							}
 						}
 					}
-					
+					//If you haven't visited a cell then decrease their hidden cells and mines found variables
+					else if(!pastMoves.contains(KB[cell.getx()+i][cell.gety()+j])){
+						int currentHidden = KB[cell.getx()+i][cell.gety()+j].getHidden();
+						int currentMinesFound = KB[cell.getx()+i][cell.gety()+j].getMinesFound();
+						
+						KB[cell.getx()+i][cell.gety()+j].setMinesFound(currentMinesFound+1);
+						KB[cell.getx()+i][cell.gety()+j].setHidden(currentHidden-1);
+					}
 				}
 			}
 		}
