@@ -1,6 +1,8 @@
 package project2;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Player {
 	
@@ -14,6 +16,8 @@ public class Player {
 	double numOfMines;
 	double minesIdentified; 
 	int cellsRevealed; 
+	ArrayList<Cell> borderlineCells;
+	Map<Cell, Double> probs;
 	
 	public Player(MineField minefield) {
 		environment=minefield;
@@ -25,6 +29,8 @@ public class Player {
 		prospectCells = new ArrayList<Cell>();
 		minesFound = new ArrayList<Cell>();
 		allHiddenCells = new ArrayList<Cell>();
+		borderlineCells = new ArrayList<Cell>();
+		probs = new HashMap<Cell, Double>();
 		
 		//Initialize the Knowledge base with empty cells and updates the hidden cells around them
 		KB = new Cell[minefield.size][minefield.size];
@@ -62,7 +68,7 @@ public class Player {
 		while(cellsRevealed != KB.length*KB.length) {
 		//for(int i = 0; i < 100; i++) {
 			Cell curr = inferenceCell();
-			if(curr.equals(new Cell(10,10))) {
+			if(curr.equals(new Cell(KB.length,KB.length))) {
 				break;
 		//		System.out.println("MINES INDENTIFIED: " + minesIdentified + 
 		//			"\nNUMBER OF TOTAL MINES: " + numOfMines);
@@ -72,7 +78,9 @@ public class Player {
 			openCell(curr);
 			cellsRevealed++;
 			display();
-		//	System.out.println(prospectCells);
+			updateBorderlineCells();
+			//System.out.println(borderlineCells);
+		    //System.out.println(prospectCells);
 			System.out.println();
 		}
 		//return -1;
@@ -166,27 +174,102 @@ public class Player {
 		
 		//return new Cell(10,10);
 		
-		//return Random Cell
+		Cell rand = getRandomCell();
 		//if(cellsRevealed != KB.length*KB.length) {
-		return getRandomCell();
+		//return minimizeRisk();
 		//}
 		//else {
 		//	System.out.println(cellsRevealed);
 		//	return new Cell(10,10);
 		//}
 		//while(pastMoves.contains(rand)) {
-		//	rand = getRandomCell();
-		//}
+	//		rand = getRandomCell();
+	//	}
 		
-		
+		return rand;
 		
 	}
+	
+	public Cell basicAgent() {
+		Cell previous = pastMoves.get(pastMoves.size()-1);
+		
+		//if the last opened cell has a clue greater than 0. Than add it to a list to prospect later 
+		if(KB[previous.getx()][previous.gety()].getClue() > 0) {
+			prospectCells.add(previous);
+		}
+		
+		//if the last opened cell has a clue of 0, add all the cells around that cell to pending moves
+		if(KB[previous.getx()][previous.gety()].getClue() == 0) {
+			for(int i = -1; i<=1;i++) {
+				for(int j = -1; j<=1;j++) {
+					if(previous.getx()+i>=0 && previous.getx()+i<KB.length && previous.gety()+j>=0 && previous.gety()+j<KB.length) {
+						Cell nextmove = new Cell(previous.getx()+i,previous.gety()+j);
+						if(!pastMoves.contains(nextmove))
+							pendingMoves.add(nextmove);
+					}
+				}
+			}
+		}
+		
+		//if there are pending moves. return the next pending move
+		//Some moves might have repeated so if we already made a pending move, then we 
+		//remove it from the list and go to the next pending move.
+		if(pendingMoves.size() > 0) {
+			while(pendingMoves.size()>0) {
+				if(!pastMoves.contains(pendingMoves.get(0)))
+					return pendingMoves.remove(0);
+				else 
+					pendingMoves.remove(0);
+			}		
+		}
+		
+		return getRandomCell();
+	}
+	
+	public Cell minimizeCost() {
+		
+		
+		
+		return getRandomCell();
+	}
+	
+	public void updateBorderlineCells() {
+		
+		boolean known = false; 
+		boolean unknown = false; 
+		borderlineCells.clear();
+		probs.clear();
+		
+		for(int row=0; row<KB.length; row++) {
+			for(int col=0; col<KB[0].length; col++) {
+				if(!pastMoves.contains(KB[row][col]) && !minesFound.contains(KB[row][col])) {
+					for(int i = -1; i<=1;i++) {
+						for(int j = -1; j<=1;j++) {
+							if(row+i>=0 && row+i<KB.length && col+j>=0 && col+j<KB.length) {
+								if(pastMoves.contains(KB[row+i][col+j])) 
+									known = true;	
+								if(!pastMoves.contains(KB[row+i][col+j])) 
+									unknown = true;
+							}
+						}
+					}
+				}
+				if(known && unknown) { 
+					borderlineCells.add(KB[row][col]);
+					probs.put(KB[row][col],	null);
+				}
+				known = false;
+				unknown = false;
+			}
+		}
+	}
+	
 	/**
 	 * opens a cell in the Knowledge base and updates its contents
 	 * @param cell
 	 */
 	public void openCell(Cell cell) {
-		//System.out.println("OPENING CELL: " + cell);
+		System.out.println("OPENING CELL: " + cell);
 		int x = environment.queryLoc(cell.getx(), cell.gety());
 		if(x != -1) {
 			KB[cell.getx()][cell.gety()].setClue(x - minesAround(cell));
@@ -215,10 +298,10 @@ public class Player {
 	 */
 	public Cell getRandomCell() {
 		if(allHiddenCells.size() == 0) {
-			return new Cell(10,10);
+			return new Cell(KB.length,KB.length);
 		}
 		Cell rand = allHiddenCells.get((int)(Math.random()*allHiddenCells.size()));
-		//System.out.println("\nRANDOM CELL GENERATED: " + "(" + rand.getx() + "," + rand.gety() + ")");
+		System.out.println("\nRANDOM CELL GENERATED: " + "(" + rand.getx() + "," + rand.gety() + ")");
 		
 		return rand;
 	}
@@ -370,7 +453,30 @@ public class Player {
 	
 	public static void main(String []args) {
 		
-		MineField answer = new MineField(3,3);
+		/*
+		int[][] performance = new int[13][30]; 
+		
+		for(int i = 3; i<16; i++) {
+			System.out.println("\nBoard Size: "  + i + "x" + i + "\n");
+			for(int j = 1; j<(2*i)-1; j++) {
+				System.out.println("Mines: " + j);
+				MineField answer = new MineField(i,j);
+				Player one = new Player(answer);
+				performance[i-3][j-1] = one.solve();
+			}
+			
+		}
+		
+		for(int i = 0; i<performance.length; i++) {
+			for(int j =0; j<performance[0].length; j++) {
+				System.out.print(performance[i][j] + " ");
+			}
+			System.out.println();
+		}
+			System.out.println(performance);
+		*/
+		
+		MineField answer = new MineField(8,10);
 		Player one = new Player(answer);
 		System.out.println("SCORE: " + one.solve());
 		
